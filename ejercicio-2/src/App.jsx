@@ -1,92 +1,49 @@
 import { useState } from "react";
 
 const App = () => {
-  // guarda los clics de cada botón en su propio estado
-  const [good, setGood] = useState(0);
-  const [neutral, setNeutral] = useState(0);
-  const [bad, setBad] = useState(0);
-  const [all, setAll] = useState(0);
-  const [average, setAverage] = useState(0);
-  const [positive, setPositive] = useState(0);
+  const anecdotes = [
+    "If it hurts, do it more often.",
+    "Adding manpower to a late software project makes it later!",
+    "The first 90 percent of the code accounts for the first 10 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.",
+    "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",
+    "Premature optimization is the root of all evil.",
+    "Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.",
+    "Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.",
+    "The only way to go fast, is to go well.",
+  ];
 
-  const averageValue = all ? average / all : 0;
-
-  const positiveAverage = all ? (positive / all) * 100 : 0;
-
-  const goodClick = () => {
-    setGood(good + 1);
-    setAll(all + 1);
-    setAverage(average + 1);
-    setPositive(positive + 1);
+  const handleChange = () => {
+    const indiceAleatorio = Math.floor(Math.random() * anecdotes.length);
+    setSelected(anecdotes[indiceAleatorio]);
   };
 
-  const neutralClick = () => {
-    setNeutral(neutral + 1);
-    setAll(all + 1);
-    setAverage(average + 0);
-  };
-
-  const badClick = () => {
-    setBad(bad + 1);
-    setAll(all + 1);
-    setAverage(average - 1);
-  };
+  const [selected, setSelected] = useState("");
 
   return (
     <div>
-      <h1>give feedback</h1>
-      <Button handleClick={goodClick} text="Good" />{" "}
-      <Button handleClick={neutralClick} text="Neutral" />{" "}
-      <Button handleClick={badClick} text="Bad" />
-      <Statistics
-        good={good}
-        bad={bad}
-        neutral={neutral}
-        all={all}
-        positive={positive}
-        average={average}
-        averageValue={averageValue}
-        positiveAverage={positiveAverage}
-      ></Statistics>
+      <Anecdotes selected={selected}></Anecdotes>
+      <ChangeAnecdote
+        text="Next anecdote"
+        handleAnecdoteChange={handleChange}
+      ></ChangeAnecdote>
     </div>
   );
 };
 
-const Statistics = (props) => {
+const Anecdotes = (props) => {
   return (
     <>
-      <h1>statistics</h1>
-      {props.all === 0 ? (
-        <p>No feedback given</p>
-      ) : (
-        <table>
-          <tbody>
-            <StatisticLine text="good" value={props.good} />
-            <StatisticLine text="neutral" value={props.neutral} />
-            <StatisticLine text="bad" value={props.bad} />
-            <StatisticLine text="all" value={props.all} />
-            <StatisticLine text="average" value={props.averageValue} />
-            <StatisticLine text="positive %" value={props.positiveAverage} />
-          </tbody>
-        </table>
-      )}
+      <p>{props.selected}</p>
     </>
   );
 };
 
-const StatisticLine = (props) => {
+const ChangeAnecdote = (props) => {
   return (
-    <>
-      <tr>
-        <td>{props.text}</td>
-        <td>{props.value}</td>
-      </tr>
-    </>
+    <div>
+      <button onClick={props.handleAnecdoteChange}>{props.text}</button>
+    </div>
   );
 };
-
-const Button = (props) => (
-  <button onClick={props.handleClick}>{props.text}</button>
-);
 
 export default App;
