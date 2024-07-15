@@ -14,31 +14,45 @@ const App = () => {
 
   const handleChange = () => {
     const indiceAleatorio = Math.floor(Math.random() * anecdotes.length);
-    setSelected(anecdotes[indiceAleatorio]);
+    setSelected([indiceAleatorio]);
   };
 
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(0);
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0));
+
+  const handleVotes = () => {
+    console.log(...votes);
+    const newVotes = [...votes];
+    newVotes[selected] += 1;
+    setVotes(newVotes);
+  };
+
+  const anecdoteMostVotes = votes.indexOf(Math.max(...votes));
 
   return (
     <div>
-      <Anecdotes selected={selected}></Anecdotes>
+      <h1>Anecdote of the day</h1>
+      <p>
+        {anecdotes[selected]} <br />
+        Has {votes[selected]} votes
+      </p>
+
+      <button onClick={handleVotes}>Vote</button>
       <ChangeAnecdote
         text="Next anecdote"
         handleAnecdoteChange={handleChange}
-      ></ChangeAnecdote>
+      />
+      <h1>Anecdotes with most votes</h1>
+      <p>
+        {anecdotes[anecdoteMostVotes]} <br />
+        has {votes[anecdoteMostVotes]} votes
+      </p>
     </div>
   );
 };
 
-const Anecdotes = (props) => {
-  return (
-    <>
-      <p>{props.selected}</p>
-    </>
-  );
-};
-
 const ChangeAnecdote = (props) => {
+  console.log("ChangeAndecdote props", props);
   return (
     <div>
       <button onClick={props.handleAnecdoteChange}>{props.text}</button>
