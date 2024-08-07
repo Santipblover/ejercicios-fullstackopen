@@ -1,14 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import personService from "./services/persons.js";
 import Filter from "./components/Filter.jsx";
 import PersonForm from "./components/PersonForm.jsx";
 import Persons from "./components/Persons.jsx";
+
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456", id: 1 },
-    { name: "Ada Lovelace", number: "39-44-5323523", id: 2 },
-    { name: "Dan Abramov", number: "12-43-234345", id: 3 },
-    { name: "Mary Poppendieck", number: "39-23-6423122", id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [numbers, setNumbers] = useState("");
   const [filter, setFilter] = useState("");
@@ -22,11 +19,13 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: numbers,
-      id: persons.length + 1,
+      id: (persons.length + 1).toString(),
     };
-    setPersons(persons.concat(newPerson));
-    setNewName("");
-    setNumbers("");
+    personService.create(newPerson).then((response) => {
+      setPersons(persons.concat(response));
+      setNewName("");
+      setNumbers("");
+    });
   };
   const personDetected = () => {
     if (persons.some((person) => person.name === newName)) {
@@ -55,6 +54,34 @@ const App = () => {
     person.name.toLowerCase().includes(filter.toLowerCase())
   );
 
+  useEffect(() => {
+    personService.getAll().then((initialPersons) => {
+      setPersons(
+        initialPersons.map((person) => ({
+          ...person,
+          id: person.id.toString(),
+        }))
+      );
+    });
+  }, []);
+
+  const handleDeletePerson = (id) => {
+    const personToDelete = persons.find((person) => person.id === id);
+    if (personToDelete) {
+      if (window.confirm(`Delete ${personToDelete.name}?`)) {
+        personService
+          .deletePerson(id)
+          .then(() => {
+            setPersons(persons.filter((person) => person.id !== id));
+          })
+          .catch((error) => {
+            console.error("Error deleting person:", error);
+            alert("An error occurred while trying to delete the person.");
+          });
+      }
+    }
+  };
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -71,7 +98,10 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       ></PersonForm>
       <h3>Numbers</h3>
-      <Persons personFilter={personFilter}></Persons>
+      <Persons
+        personFilter={personFilter}
+        handleDeletePerson={handleDeletePerson}
+      ></Persons>
     </div>
   );
 };

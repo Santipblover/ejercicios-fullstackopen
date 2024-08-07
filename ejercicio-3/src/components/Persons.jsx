@@ -1,9 +1,10 @@
-const Persons = (props) => {
+const Persons = ({ personFilter, handleDeletePerson }) => {
   return (
     <>
-      {props.personFilter.map((person) => (
+      {personFilter.map((person) => (
         <p key={person.id}>
-          {person.name} {person.number}
+          {person.name} {person.number}{" "}
+          <button onClick={() => handleDeletePerson(person.id)}>delete</button>
         </p>
       ))}
     </>
