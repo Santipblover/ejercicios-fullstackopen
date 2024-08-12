@@ -13,7 +13,9 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault();
     console.log("add clicked", event.target);
-    if (personDetected()) {
+    if (personDetected(newName, numbers)) {
+      setNewName("");
+      setNumbers("");
       return;
     }
     const newPerson = {
@@ -27,9 +29,29 @@ const App = () => {
       setNumbers("");
     });
   };
-  const personDetected = () => {
-    if (persons.some((person) => person.name === newName)) {
-      alert(`${newName} is already added to phonebook`);
+  const personDetected = (name, newNumber) => {
+    const personNumberOld = persons.find((person) => person.name === name);
+    if (
+      personNumberOld &&
+      window.confirm(
+        `${name} is already added to phonebook, replace the old number with a new one?`
+      )
+    ) {
+      if (newNumber !== personNumberOld.number) {
+        const personChangeNumber = {
+          ...personNumberOld,
+          number: newNumber,
+        };
+        personService
+          .update(personNumberOld.id, personChangeNumber)
+          .then((returnedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== personNumberOld.id ? person : returnedPerson
+              )
+            );
+          });
+      }
       return true;
     }
     return false;
@@ -67,18 +89,16 @@ const App = () => {
 
   const handleDeletePerson = (id) => {
     const personToDelete = persons.find((person) => person.id === id);
-    if (personToDelete) {
-      if (window.confirm(`Delete ${personToDelete.name}?`)) {
-        personService
-          .deletePerson(id)
-          .then(() => {
-            setPersons(persons.filter((person) => person.id !== id));
-          })
-          .catch((error) => {
-            console.error("Error deleting person:", error);
-            alert("An error occurred while trying to delete the person.");
-          });
-      }
+    if (personToDelete && window.confirm(`Delete ${personToDelete.name}?`)) {
+      personService
+        .deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => {
+          console.error("Error deleting person:", error);
+          alert("An error occurred while trying to delete the person.");
+        });
     }
   };
 
