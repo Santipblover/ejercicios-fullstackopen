@@ -17,7 +17,7 @@ const update = (id, newObject) => {
 };
 
 const deletePerson = (id) => {
-  const request = axios.delete(`${baseUrl}/${id}`);
+  const request = axios.delete(`${baseUrl}/${String(id)}`);
   return request.then((response) => response.data);
 };
 

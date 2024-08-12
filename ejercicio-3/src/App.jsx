@@ -3,12 +3,16 @@ import personService from "./services/persons.js";
 import Filter from "./components/Filter.jsx";
 import PersonForm from "./components/PersonForm.jsx";
 import Persons from "./components/Persons.jsx";
+import Notification from "./components/Notification.jsx";
+import ErrorNotification from "./components/ErrorNotification.jsx";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [numbers, setNumbers] = useState("");
   const [filter, setFilter] = useState("");
+  const [rightMessage, setRightMessage] = useState(null);
+  const [messageError, setMessageError] = useState(null);
 
   const addPerson = (event) => {
     event.preventDefault();
@@ -27,6 +31,10 @@ const App = () => {
       setPersons(persons.concat(response));
       setNewName("");
       setNumbers("");
+      setRightMessage(`Added ${newPerson.name}`);
+      setTimeout(() => {
+        setRightMessage(null);
+      }, 4000);
     });
   };
   const personDetected = (name, newNumber) => {
@@ -50,6 +58,15 @@ const App = () => {
                 person.id !== personNumberOld.id ? person : returnedPerson
               )
             );
+          })
+          .catch((error) => {
+            setMessageError(
+              `Information of ${personNumberOld.name} has already been removed from server`
+            );
+            setTimeout(() => {
+              setMessageError(null);
+            }, 4000);
+            setPersons(persons.filter((person) => person.name !== name));
           });
       }
       return true;
@@ -78,22 +95,21 @@ const App = () => {
 
   useEffect(() => {
     personService.getAll().then((initialPersons) => {
-      setPersons(
-        initialPersons.map((person) => ({
-          ...person,
-          id: person.id.toString(),
-        }))
-      );
+      const personsWithStringIds = initialPersons.map((person) => ({
+        ...person,
+        id: String(person.id),
+      }));
+      setPersons(personsWithStringIds);
     });
   }, []);
 
   const handleDeletePerson = (id) => {
-    const personToDelete = persons.find((person) => person.id === id);
+    const personToDelete = persons.find((person) => person.id === String(id));
     if (personToDelete && window.confirm(`Delete ${personToDelete.name}?`)) {
       personService
         .deletePerson(id)
         .then(() => {
-          setPersons(persons.filter((person) => person.id !== id));
+          setPersons(persons.filter((person) => person.id !== String(id)));
         })
         .catch((error) => {
           console.error("Error deleting person:", error);
@@ -105,6 +121,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification messageRight={rightMessage}></Notification>
+      <ErrorNotification messageError={messageError}></ErrorNotification>
 
       <Filter filter={filter} handleFilter={handleFilter}></Filter>
 
