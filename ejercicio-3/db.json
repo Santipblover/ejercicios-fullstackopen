@@ -1,49 +1,14 @@
 {
-  "persons": [
+  "notes": [
     {
-      "name": "Arto Hellas",
-      "number": "040-123456",
-      "id": "1"
+      "id": "2",
+      "content": "dsadasd",
+      "important": true
     },
     {
-      "name": "Ada Lovelace",
-      "number": "39-44-5323523",
-      "id": "2"
-    },
-    {
-      "name": "Dan Abramov",
-      "number": "12-43-234345",
-      "id": "3"
-    },
-    {
-      "name": "Mary Poppendieck",
-      "number": "39-23-6423122",
-      "id": "4"
-    },
-    {
-      "id": "5",
-      "name": "Lionel Messi",
-      "number": "3511313"
-    },
-    {
-      "id": "6",
-      "name": "Aguero",
-      "number": "564684"
-    },
-    {
-      "id": "7",
-      "name": "Zidane",
-      "number": "4468468464"
-    },
-    {
-      "id": "8",
-      "name": "pepe",
-      "number": "54864684"
-    },
-    {
-      "id": "9",
-      "name": "Cuti",
-      "number": "8464684684"
+      "id": "3",
+      "content": "dasdasdas",
+      "important": true
     }
   ]
 }
