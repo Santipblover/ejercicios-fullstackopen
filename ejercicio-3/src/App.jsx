@@ -1,36 +1,85 @@
-import noteService from "./services/notes";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import Note from "./components/Note";
-import Notification from "./components/Notification";
-
-const Footer = () => {
-  const footerStyle = {
-    color: "green",
-    fontStyle: "italic",
-    fontSize: 16,
-  };
-  return (
-    <div style={footerStyle}>
-      <br />
-      <em>
-        Note app, Department of Computer Science, University of Helsinki 2024
-      </em>
-    </div>
-  );
-};
+import { useEffect, useState } from "react";
+import personService from "./services/persons.js";
+import Filter from "./components/Filter.jsx";
+import PersonForm from "./components/PersonForm.jsx";
+import Persons from "./components/Persons.jsx";
 
 const App = () => {
-  const [notes, setNotes] = useState(null);
-  const [newNote, setNewNote] = useState("");
-  const [showAll, setShowAll] = useState(true);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState("");
+  const [numbers, setNumbers] = useState("");
+  const [filter, setFilter] = useState("");
+
+  const addPerson = (event) => {
+    event.preventDefault();
+    console.log("add clicked", event.target);
+    if (personDetected(newName, numbers)) {
+      setNewName("");
+      setNumbers("");
+      return;
+    }
+    const newPerson = {
+      name: newName,
+      number: numbers,
+      id: (persons.length + 1).toString(),
+    };
+    personService.create(newPerson).then((response) => {
+      setPersons(persons.concat(response));
+      setNewName("");
+      setNumbers("");
+    });
+  };
+  const personDetected = (name, newNumber) => {
+    const personNumberOld = persons.find((person) => person.name === name);
+    if (
+      personNumberOld &&
+      window.confirm(
+        `${name} is already added to phonebook, replace the old number with a new one?`
+      )
+    ) {
+      if (newNumber !== personNumberOld.number) {
+        const personChangeNumber = {
+          ...personNumberOld,
+          number: newNumber,
+        };
+        personService
+          .update(personNumberOld.id, personChangeNumber)
+          .then((returnedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== personNumberOld.id ? person : returnedPerson
+              )
+            );
+          });
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const handleNameChange = (event) => {
+    console.log(event.target);
+    setNewName(event.target.value);
+  };
+
+  const handleNumberChange = (event) => {
+    console.log(event.target);
+    setNumbers(event.target.value);
+  };
+
+  const handleFilter = (event) => {
+    console.log(event.target);
+    setFilter(event.target.value);
+  };
+
+  const personFilter = persons.filter((person) =>
+    person.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   useEffect(() => {
-    noteService.getAll().then((initialNotes) => {
-      console.log(initialNotes, "notas iniciales");
-      setNotes(
-        initialNotes.map((person) => ({
+    personService.getAll().then((initialPersons) => {
+      setPersons(
+        initialPersons.map((person) => ({
           ...person,
           id: person.id.toString(),
         }))
@@ -38,82 +87,42 @@ const App = () => {
     });
   }, []);
 
-  if (!notes) {
-    return null;
-  }
-
-  const addNote = (event) => {
-    event.preventDefault();
-    const noteObject = {
-      content: newNote,
-      important: Math.random() > 0.5,
-      id: (notes.length + 1).toString(),
-    };
-
-    setNotes(notes.concat(noteObject));
-    setNewNote("");
-
-    noteService.create(noteObject).then((returnedNote) => {
-      setNotes(notes.concat(returnedNote));
-      setNewNote("");
-    });
-  };
-  const handleNoteChange = (event) => {
-    console.log(event.target.value);
-    setNewNote(event.target.value);
+  const handleDeletePerson = (id) => {
+    const personToDelete = persons.find((person) => person.id === id);
+    if (personToDelete && window.confirm(`Delete ${personToDelete.name}?`)) {
+      personService
+        .deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => {
+          console.error("Error deleting person:", error);
+          alert("An error occurred while trying to delete the person.");
+        });
+    }
   };
 
-  const toggleImportanceOf = (id) => {
-    const note = notes.find((n) => n.id === id);
-    const changedNote = { ...note, important: !note.important };
-
-    noteService
-      .update(id, changedNote)
-      .then((returnedNote) => {
-        setNotes(notes.map((note) => (note.id !== id ? note : returnedNote)));
-      })
-
-      .catch((error) => {
-        setErrorMessage(
-          Note`'${note.content}' was already removed from server`
-        );
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 5000);
-        setNotes(notes.filter((n) => n.id !== id));
-      });
-  };
-
-  const notesToShow = showAll
-    ? notes
-    : notes.filter((note) => note.important === true);
   return (
-    <>
-      <div>
-        <h1>Notes</h1>
-        <Notification message={errorMessage}></Notification>
-      </div>
-      <div>
-        <button onClick={() => setShowAll(!showAll)}>
-          show {showAll ? "important" : "all"}
-        </button>
-      </div>
-      <ul>
-        {notesToShow.map((note) => (
-          <Note
-            key={note.id}
-            note={note}
-            toggleImportance={() => toggleImportanceOf(note.id)}
-          />
-        ))}
-      </ul>
+    <div>
+      <h2>Phonebook</h2>
 
-      <form onSubmit={addNote}>
-        <input value={newNote} onChange={handleNoteChange} />
-        <button type="submit">save</button>
-      </form>
-      <Footer></Footer>
-    </>
+      <Filter filter={filter} handleFilter={handleFilter}></Filter>
+
+      <h3>add a new</h3>
+      <PersonForm
+        addPerson={addPerson}
+        personDetected={personDetected}
+        newName={newName}
+        handleNameChange={handleNameChange}
+        number={numbers}
+        handleNumberChange={handleNumberChange}
+      ></PersonForm>
+      <h3>Numbers</h3>
+      <Persons
+        personFilter={personFilter}
+        handleDeletePerson={handleDeletePerson}
+      ></Persons>
+    </div>
   );
 };
 
